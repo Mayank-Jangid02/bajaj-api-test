@@ -10,7 +10,30 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Middlewares
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://bajaj-api-round-mayank.netlify.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like curl, backend pings, or mobile apps)
+    if (!origin) return callback(null, true);
+    
+    // If not in production, allow all origins for easy debugging
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.netlify.app');
+    if (isAllowed) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('CORS block: Access denied by DeskFlow security policy.'), false);
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Mount ticket routes on /tickets to match problem statement API specification
